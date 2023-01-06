@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Learn ThreeJS</title>
+        <meta name="author" content="QuangHieuNguyen"/>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+        <script type="text/javascript" src="D:\Sources\ThreeJS\libs\three.js"></script>
+        <script type="text/javascript" src="D:\Sources\ThreeJS\libs\dat.gui.js"></script>
+        <script type="text/javascript" src="D:\Sources\ThreeJS\libs\TrackballControls.js"></script>
+        <script type="text/javascript" src="D:\Sources\ThreeJS\libs\OrbitControls.js"></script>
+        <script type="text/javascript" src="D:\Sources\ThreeJS\libs\OBJLoader.js"></script>
+        <script type="text/javascript" src="D:\Sources\ThreeJS\libs\ConvexGeometry.js"></script>
+
+        <script type="text/javascript" src=".\objects\buildingD3579.js"></script>
+        <script type="text/javascript" src=".\objects\buildingD468.js"></script>
+        <script type="text/javascript" src=".\objects\buildingC.js"></script>
+        <script type="text/javascript" src=".\objects\buildingB1.js"></script>
+        <script type="text/javascript" src=".\objects\buildingKTX.js"></script>
+        <script type="text/javascript" src=".\objects\parabolGate.js"></script>
+        <script type="text/javascript" src=".\objects\buildingResident.js"></script>
+        <script type="text/javascript" src=".\objects\buildingTC.js"></script>
+        <script type="text/javascript" src=".\objects\buildingHUCE.js"></script>
+        <script type="text/javascript" src=".\objects\lake.js"></script>
+        <script type="text/javascript" src=".\objects\TQBlibrary.js"></script>
+        <script type="text/javascript" src=".\objects\road.js"></script>
+    </head>
+    <style>
+        body
+        {
+            overflow: hidden;
+            margin: 0;
+        }
+    </style>
+    <body>
+        <div id="WebGL-output"></div>
+        <script type="text/javascript">
+            function init()
+            {
+                var scene = new THREE.Scene();
+                var setcolor = 0x333333;
+                scene.background = new THREE.Color(setcolor);
+                // scene.fog = new THREE.Fog(0xffffff, 0.015, 100);
+                // fov, aspect, near, far
+                var camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 10000);
+        
+                // antialiasing khử răng cưa 
+                var renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setClearColor(setcolor, 1);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.soft = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                renderer.shadowMap.needsUpdate = true;
+
+                var orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+                orbitControls.addEventListener('change', light_update);
+
+                // x-red y-green z-blue
+                var axes = new THREE.AxesHelper(20);
+                scene.add(axes);
+
+                var ambientLight = new THREE.AmbientLight(0xfafafa);
+                scene.add(ambientLight);
+
+                var directionalLight = new THREE.DirectionalLight(0xfafafa);
+                // var directionalLight = new THREE.DirectionalLight(0xffffff);
+				directionalLight.position.set(700, 200, 700);
+                directionalLight.target.position.set(50, 0, 50);
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 4096;
+                directionalLight.shadow.mapSize.height = 4096;
+                directionalLight.shadow.camera.near = 0;
+                directionalLight.shadow.camera.far = 2500;
+                directionalLight.shadow.camera.left = -1000;
+                directionalLight.shadow.camera.right = 1000;
+                directionalLight.shadow.camera.top = 1000;
+                directionalLight.shadow.camera.bottom = -1000;
+                directionalLight.shadow.darkness = 0.5;
+                directionalLight.shadow.camera.visible = true;
+                scene.add(directionalLight);
+                scene.add(directionalLight.target);
+                var directionalLighthelper = new THREE.DirectionalLightHelper(directionalLight, 50);
+                // scene.add(directionalLighthelper);
+
+                function updateLight() 
+                {
+                    directionalLight.target.updateMatrixWorld();
+                    directionalLighthelper.update();
+                }
+                updateLight();
+
+
+                var groundGeometry = new THREE.PlaneGeometry(1000, 1000, 20, 20);
+                var groundMaterial = new THREE.MeshStandardMaterial({
+                                                color:0xffffff,
+                                                side:THREE.DoubleSide,
+                                                roughness: 10,
+                                                metalness: 0.6,
+                                                opacity:1,
+                                                wireframe:true});
+                var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x -= 0.5 * Math.PI;
+                ground.position.set(102, 0, 86.8);
+                ground.receiveShadow = true;
+                scene.add(ground);
+                ground.visible = false;
+                
+                url = "http://127.0.0.1:5500/Assets/Parabolic.obj"
+                var loader = new THREE.OBJLoader();
+                loader.load(url, function(mesh)
+                {
+                    mesh.scale.set(0.6, 0.5, 0.6);
+                    var mat = new THREE.MeshStandardMaterial({color: 0x00ffff,
+                        flatShading: THREE.SmoothShading,
+                        side:THREE.DoubleSide});
+                    mesh.children.forEach(function(child)
+                    {
+                        child.material = mat;
+                        child.geometry.center();
+                    });
+                    var bbox = new THREE.Box3().setFromObject(mesh);
+                    mesh.position.set(9, (bbox.max.y - bbox.min.y) / 2, 59);
+                    mesh.rotation.y = -0.4 * Math.PI;
+                    scene.add(mesh);
+                });
+                
+                buildingD3579 = generate_buildingD3579();
+                var buildingD3 = buildingD3579[0];
+                var buildingD35 = buildingD3579[1];
+                var buildingD5 = buildingD3579[2];
+                var buildingD7 = buildingD3579[3];
+                var buildingD9 = buildingD3579[4];
+                scene.add(buildingD3);
+                scene.add(buildingD35);
+                scene.add(buildingD5);
+                scene.add(buildingD7);
+                scene.add(buildingD9);
+
+                TQBlibrary = generate_TQBlibrary();
+                scene.add(TQBlibrary);
+
+                buildingD468 =  generate_buildingD468();
+                var buildingVietDuc = buildingD468[0];
+                var buildingClub = buildingD468[1];
+                var buildingAlumi = buildingD468[2];
+                var buildingD8 = buildingD468[3];
+                var buildingD6 = buildingD468[4];
+                var buildingD4 = buildingD468[5];
+                var buildingD2A = buildingD468[6];
+                var canteen = buildingD468[7];
+                var buildingD2B = buildingD468[8];
+                var parkingD4 = buildingD468[9];
+                scene.add(buildingVietDuc);
+                scene.add(buildingClub);
+                scene.add(buildingAlumi);
+                scene.add(buildingD8);
+                scene.add(buildingD6);
+                scene.add(buildingD4);
+                scene.add(buildingD2A);
+                scene.add(canteen);
+                scene.add(buildingD2B);
+                scene.add(parkingD4);
+
+                buildingC = generate_buildingC();
+                var buildingC9 = buildingC[0];
+                var buildingC2 = buildingC[1];
+                var buildingC1 = buildingC[2];
+                var buildingC1B = buildingC[3];
+                var connect34510 = buildingC[4];
+                var buildingC3 = buildingC[5];
+                var buildingC4 = buildingC[6];
+                var buildingC5 = buildingC[7];
+                var buildingC10 = buildingC[8];
+                var buildingC10B = buildingC[9];
+                var parkingC = buildingC[10];
+                var buildingC7 = buildingC[11];
+                var buildingC6 = buildingC[12];
+                var buildingC15 = buildingC[13];
+                var buildingC3B = buildingC[14];
+                scene.add(buildingC9);
+                scene.add(buildingC2);
+                scene.add(buildingC1);
+                scene.add(buildingC1B);
+                scene.add(connect34510);
+                scene.add(buildingC3);
+                scene.add(buildingC4);
+                scene.add(buildingC5);
+                scene.add(buildingC10);
+                scene.add(buildingC10B);
+                scene.add(parkingC);
+                scene.add(buildingC7);
+                scene.add(buildingC6);
+                scene.add(buildingC15);
+                scene.add(buildingC3B);
+
+                listBuildingB1 = generate_buildingB1();
+                highland = listBuildingB1[0];
+                parkingB1 = listBuildingB1[1];
+                buildingB1 = listBuildingB1[2];
+                scene.add(highland);
+                scene.add(parkingB1);
+                scene.add(buildingB1);
+
+                listBuildingKTX = generate_buildingKTX();
+                buildingB8 = listBuildingKTX[0];
+                buildingB7Bis = listBuildingKTX[1];
+                buildingB7 = listBuildingKTX[2];
+                buildingB6 = listBuildingKTX[3];
+                buildingB5 = listBuildingKTX[4];
+                buildingB9 = listBuildingKTX[5];
+                buildingB13 = listBuildingKTX[6];
+                buildingB10 = listBuildingKTX[7];
+                residentKTX = listBuildingKTX[8];
+                scene.add(buildingB8);
+                scene.add(buildingB7Bis);
+                scene.add(buildingB7);
+                scene.add(buildingB6);
+                scene.add(buildingB5);
+                scene.add(buildingB9);
+                scene.add(buildingB13);
+                scene.add(buildingB10);
+                scene.add(residentKTX);
+
+                buildingTC = generate_buildingTC();
+                TC = buildingTC[0];
+                stadium = buildingTC[1];
+                buildingPool = buildingTC[2];
+                bookstore = buildingTC[3];
+                svd = buildingTC[4];
+                scene.add(TC);
+                scene.add(stadium);
+                scene.add(buildingPool);
+                scene.add(bookstore);
+                scene.add(svd);
+
+                buildingResident = generate_buildingResident();
+                scene.add(buildingResident);
+
+                buildingHUCE = generate_buildingHUCE()
+                scene.add(buildingHUCE);
+
+                var controls = new function()
+                {
+                    this.visualizeGround = false;
+                    this.wireframeGround = true;
+                    this.colorGround = "#ffffff";
+                }
+                var gui = new dat.GUI();
+                
+                const groundGUI = gui.addFolder("Setting for ground");
+                groundGUI.add(controls, "visualizeGround", true, false).onChange(function(e){
+                    ground.visible = e;
+                }).name("Visualize Ground plane");
+                groundGUI.add(controls, "wireframeGround", true, false).onChange(function(e){
+                    ground.material.wireframe = e;
+                }).name("Wireframe Ground plane");
+                groundGUI.addColor(controls, "colorGround").onChange(function(e){
+                    ground.material.color = new THREE.Color(e);
+                }).name("Ground color");
+
+
+                camera.position.x = 200;
+                camera.position.y = 50;
+                camera.position.z = 200;
+                camera.lookAt(scene.position);
+                orbitControls.update();
+                document.getElementById("WebGL-output").appendChild(renderer.domElement);
+                
+                function light_update()
+                {
+                    directionalLight.position.copy(camera.position);
+                    // console.log(directionalLight.position);
+                }
+
+                function myRender() 
+                {   
+                    requestAnimationFrame(myRender);
+                    orbitControls.update();
+                    renderer.render(scene, camera);
+
+                    // if(controls.visualizeGround == true)
+                    // {
+                    //     ground.visible = true;
+                    // }
+                    // else
+                    // {
+                    //     ground.visible = false;
+                    // }
+                }
+                myRender();
+            }
+            init();
+        </script>
+    </body>
+</html>
